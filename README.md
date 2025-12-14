@@ -29,8 +29,45 @@ This template is perfect for teams who need a comprehensive observability soluti
 4. Wait for your stack to deploy (this typically takes 3-5 minutes)
 5. Navigate to the Grafana URL provided by Railway
 6. Log in with your admin username and the auto-generated password found in the `GF_SECURITY_ADMIN_PASSWORD` environment variable
-7. Hook up your applications to the datasources.
-8. Create dashboards, alerts, and explore your data in Grafana!
+7. **Configure Prometheus scraping** - Update `prometheus/prom.yml` with your service targets (see Configuration section)
+8. **Upload dashboards** - Use the `configure-railway-monitoring` script from your Rails app to upload pre-configured dashboards
+9. Hook up your applications to the datasources
+10. Create dashboards, alerts, and explore your data in Grafana!
+
+## Configuration
+
+### Prometheus Scrape Configuration
+
+Edit `prometheus/prom.yml` to add your service targets. Uncomment and update the scrape configs:
+
+```yaml
+scrape_configs:
+  - job_name: 'rails-app'
+    static_configs:
+      - targets: ['your-rails-service.railway.internal:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+```
+
+### Grafana Datasources
+
+Datasources are automatically provisioned with UIDs:
+- **Prometheus**: `uid: prometheus` (default)
+- **Loki**: `uid: loki`
+- **Tempo**: `uid: tempo`
+
+These UIDs are used in dashboard JSON files to reference datasources.
+
+### Dashboard Provisioning
+
+Dashboards can be provisioned by:
+1. **API Upload**: Use `configure-railway-monitoring` script from your Rails app
+2. **File Provisioning**: Mount dashboard JSON files to `/etc/grafana/dashboards/spin-market/`
+
+The `configure-railway-monitoring` script automatically:
+- Adds datasource UID references to all dashboard targets
+- Replaces Kafka references with LavinMQ
+- Uploads dashboards via Grafana API
 
 ## Optional Variables
 

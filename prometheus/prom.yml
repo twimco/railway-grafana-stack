@@ -1,21 +1,55 @@
 global:
-  scrape_interval: 15s # Default scrape interval
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'railway'
+    environment: 'production'
+
+rule_files:
+  # - '/etc/prometheus/alert-rules.yml'  # Uncomment if you add alert rules
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+          # - alertmanager:9093  # Enable when alertmanager is deployed
 
 scrape_configs:
+  # Prometheus Self-Monitoring
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+    scrape_interval: 30s
 
+  # Rails Application Metrics
+  - job_name: 'rails-app'
+    static_configs:
+      - targets: ['spin.railway.internal:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # Sidekiq Worker Metrics
+  - job_name: 'sidekiq-worker'
+    static_configs:
+      - targets: ['worker.railway.internal:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # LavinMQ Metrics
+  - job_name: 'lavinmq'
+    static_configs:
+      - targets: ['lavinmq.railway.internal:15672']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # Example API (from template)
   # - job_name: 'example_api'
   #   scheme: http
   #   static_configs:
   #     - targets: ['example_api:9091']
-
-  #  ? TODO: add your services here
-  # - job_name: 'your-job-name'
-  #   scheme: https
-  #   static_configs:
-  #     - targets: ['URL_GOES_HERE']
-  #   basic_auth:
-  #     username: HTTP_AUTH_USERNAME_GOES_HERE
-  #     password: HTTP_AUTH_PASSWORD_GOES_HERE
